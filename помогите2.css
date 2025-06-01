@@ -1,0 +1,340 @@
+:root {
+    --primary-color: #ff4785;
+    --secondary-color: #ff85b3;
+    --background-color: #fff0f5;
+    --card-gradient: linear-gradient(135deg, #ff9ec6, #ff6b9e);
+    --text-color: #5a2a42;
+    --light-text: #ffffff;
+    --border-color: #ffcce0;
+    --chip-color: linear-gradient(135deg, #ffd700, #c0c0c0);
+    --map-highlight: #ff2d6d;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: "Comic Neue", cursive;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    line-height: 1.6;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    max-width: 900px;
+    width: 100%;
+    gap: 30px;
+}
+
+h1, h2 {
+    font-weight: 700;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 10px;
+}
+
+.credit-card {
+    width: 340px;
+    height: 220px;
+    border-radius: 15px;
+    padding: 20px;
+    background: var(--card-gradient);
+    box-shadow: 0 10px 30px rgba(255, 105, 158, 0.3);
+    color: var(--light-text);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin: 0 auto 30px;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bank-name {
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.card-region {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin-left: auto;
+    margin-right: 10px;
+    font-style: italic;
+}
+
+.bank-logo {
+    height: 30px;
+    width: auto;
+    max-width: 80px;
+    object-fit: contain;
+    display: block; 
+}
+
+.card-chip {
+    width: 50px;
+    height: 35px;
+    background: var(--chip-color);
+    border-radius: 5px;
+    margin: 15px 0;
+}
+
+.card-number {
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+    word-spacing: 10px;
+    text-align: center;
+    margin: 10px 0;
+    font-family: "Courier New", monospace;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+}
+
+.label {
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin-bottom: 3px;
+}
+
+.name {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+}
+
+.form-container {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 5px 15px rgba(255, 105, 158, 0.1);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+input, select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.3s;
+}
+
+input:focus, select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+input::placeholder {
+    color: #c0a8b8;
+}
+
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.submit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 15px 25px;
+    margin-top: 20px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-family: "Comic Neue", cursive;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 71, 133, 0.3);
+}
+
+.submit-btn:hover {
+    background: #ff2d6d;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 71, 133, 0.4);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+}
+
+/* Стили для карты России */
+.russia-map-container {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 5px 15px rgba(255, 105, 158, 0.1);
+}
+
+.russia-map {
+    width: 100%;
+    height: 300px;
+    margin-top: 15px;
+    overflow: hidden;
+    border-radius: 10px;
+}
+
+.russia-map svg {
+    width: 100%;
+    height: 100%;
+}
+
+.russia-map path {
+    fill: #ffd6e7;
+    stroke: #ff85b3;
+    stroke-width: 0.5;
+    transition: all 0.3s ease;
+}
+
+.russia-map path:hover {
+    fill: var(--secondary-color);
+    cursor: pointer;
+}
+
+.russia-map path.highlighted {
+    fill: var(--map-highlight);
+    stroke: white;
+    stroke-width: 1;
+    filter: drop-shadow(0 0 5px rgba(255, 71, 133, 0.7));
+}
+
+@media (min-width: 768px) {
+    .container {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    
+    .card-preview {
+        flex: 1;
+        padding-right: 30px;
+    }
+    
+    .form-container {
+        flex: 1;
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 2rem;
+    }
+    
+    .credit-card {
+        width: 300px;
+        height: 190px;
+    }
+    
+    .card-number {
+        font-size: 1rem;
+    }
+    
+    .russia-map {
+        height: 200px;
+    }
+}
+
+
+.russia-map-container {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    box-shadow: 0 5px 15px rgba(255, 105, 158, 0.1);
+}
+
+.russia-map {
+    width: 100%;
+    height: 350px;
+    margin-top: 15px;
+    overflow: auto;
+    border-radius: 10px;
+    background: #fff9fb;
+    border: 2px solid var(--border-color);
+}
+
+.russia-map svg {
+    width: 100%;
+    height: 100%;
+    min-width: 400px;
+    min-height: 100px;
+}
+
+.russia-map path {
+    fill: #ffd6e7;
+    stroke: #ff85b3;
+    stroke-width: 0.7;
+    transition: all 0.3s ease;
+}
+
+.russia-map path:hover {
+    fill: var(--secondary-color);
+    cursor: pointer;
+}
+
+.russia-map path.highlighted {
+    fill: var(--primary-color);
+    stroke: white;
+    stroke-width: 1.5;
+    filter: drop-shadow(0 0 5px rgba(255, 71, 133, 0.5));
+}
+
+@media (max-width: 368px) {
+    .russia-map {
+        height: 150px;
+    }
+}
+.russia-map path.highlighted {
+    fill: var(--primary-color) !important;
+    stroke: white !important;
+    stroke-width: 1.5px !important;
+    filter: drop-shadow(0 0 5px rgba(255, 71, 133, 0.7)) !important;
+    transition: all 0.3s ease;
+}
