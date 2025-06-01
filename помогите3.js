@@ -1,5 +1,4 @@
 document.addEventListener('DOMContentLoaded', function() {
-	
     // База данных российских банков
     const banks = {
         '2200': { name: 'Мир', logo: 'mir.png', region: 'Россия' },
@@ -64,25 +63,150 @@ document.addEventListener('DOMContentLoaded', function() {
         'Тюменская область': 'RU-TYU'
     };
 
-
-
+    // Элементы DOM
     const cardNumberInput = document.getElementById('cardNumber');
     const firstNameInput = document.getElementById('firstName');
     const lastNameInput = document.getElementById('lastName');
     const cardExpiryInput = document.getElementById('cardExpiry');
-    const cardCvvInput = document.getElementById('cardCvv'); // Добавляем CVV
+    const cardCvvInput = document.getElementById('cardCvv');
     const bankLogo = document.getElementById('bankLogo');
     const bankNameElement = document.querySelector('.bank-name');
     const regionElement = document.querySelector('.card-region');
     const cardNumberElement = document.querySelector('.card-number');
     const expiryDateElement = document.querySelector('.date');
     const nameElement = document.querySelector('.name');
-    const cvvElement = document.querySelector('.cvv'); // Добавляем элемент для CVV (его нужно добавить в HTML)
+    const cvvElement = document.querySelector('.cvv');
     const mapContainer = document.querySelector('.russia-map');
 
-    // Загрузка полной SVG карты России
+    // ===== Local Storage =====
+    // Загрузка данных
+    if (localStorage.getItem('cardData')) {
+        const savedData = JSON.parse(localStorage.getItem('cardData'));
+        firstNameInput.value = savedData.firstName || '';
+        lastNameInput.value = savedData.lastName || '';
+        cardNumberInput.value = savedData.cardNumber || '';
+        cardExpiryInput.value = savedData.cardExpiry || '';
+        cardCvvInput.value = savedData.cardCvv || '';
+        
+        // Обновляем отображение
+        updateCardName();
+        cardNumberInput.dispatchEvent(new Event('input'));
+        cardExpiryInput.dispatchEvent(new Event('input'));
+        cardCvvInput.dispatchEvent(new Event('input'));
+    }
+
+    // Сохранение данных
+    function saveToLocalStorage() {
+        const cardData = {
+            firstName: firstNameInput.value,
+            lastName: lastNameInput.value,
+            cardNumber: cardNumberInput.value,
+            cardExpiry: cardExpiryInput.value,
+            cardCvv: cardCvvInput.value
+        };
+        localStorage.setItem('cardData', JSON.stringify(cardData));
+    }
+
+    // ===== Обработчики =====
+    // Имя
+    firstNameInput.addEventListener('input', updateCardName);
+    lastNameInput.addEventListener('input', updateCardName);
+
+    function updateCardName() {
+        const firstName = firstNameInput.value.trim().toUpperCase();
+        const lastName = lastNameInput.value.trim().toUpperCase();
+        nameElement.textContent = `${firstName} ${lastName}` || 'ИМЯ ФАМИЛИЯ';
+        saveToLocalStorage();
+    }
+
+    // Номер карты
+    cardNumberInput.addEventListener('input', function(e) {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length > 16) value = value.substring(0, 16);
+        this.value = formatCardNumber(value);
+        cardNumberElement.textContent = formatCardNumber(value) || '•••• •••• •••• ••••';
+        
+        // Определение банка и региона
+        updateBankInfo(value);
+        saveToLocalStorage();
+    });
+
+    function formatCardNumber(value) {
+        return value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+    }
+
+    function updateBankInfo(cardNumber) {
+        // Определение банка
+        let bank = null;
+        const bankDigits = cardNumber.substring(0, 4);
+        for (const prefix in banks) {
+            if (bankDigits.startsWith(prefix)) {
+                bank = banks[prefix];
+                break;
+            }
+        }
+
+        // Определение региона
+        let region = null;
+        if (cardNumber.length >= 6) {
+            const regionDigits = cardNumber.substring(4, 6);
+            region = regionsByDigits[regionDigits];
+        }
+
+        // Обновление информации
+        if (bank) {
+            bankNameElement.textContent = bank.name;
+            bankLogo.src = bank.logo || '';
+            bankLogo.style.display = bank.logo ? 'block' : 'none';
+        } else {
+            bankNameElement.textContent = 'Неизвестный банк';
+            bankLogo.style.display = 'none';
+        }
+
+        regionElement.textContent = region || (cardNumber.length >= 6 ? 'Регион не определен' : '');
+        highlightRegion(region);
+    }
+
+    // Срок действия
+    cardExpiryInput.addEventListener('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length > 2) value = value.substring(0, 2) + '/' + value.substring(2, 4);
+        if (value.length > 5) value = value.substring(0, 5);
+        this.value = value;
+        expiryDateElement.textContent = value || '••/••';
+        saveToLocalStorage();
+    });
+
+    // CVV
+    cardCvvInput.addEventListener('input', function() {
+        let value = this.value.replace(/\D/g, '');
+        if (value.length > 3) value = value.substring(0, 3);
+        this.value = value;
+        cvvElement.textContent = '•'.repeat(value.length) || '•••';
+        saveToLocalStorage();
+    });
+
+    // ===== Карта России =====
+    function highlightRegion(regionName) {
+        const allPaths = mapContainer.querySelectorAll('path');
+        allPaths.forEach(path => {
+            path.style.fill = '';
+            path.style.stroke = '';
+        });
+
+        if (regionName) {
+            const regionCode = regionToPathId[regionName];
+            const regionPath = mapContainer.querySelector(`path[data-code="${regionCode}"]`);
+            if (regionPath) {
+                regionPath.style.fill = '#ff0000';
+                regionPath.style.stroke = '#000';
+            }
+        }
+    }
+
+    // Загрузка карты
     function loadRussiaMap() {
-        mapContainer.innerHTML = `
+		mapContainer.innerHTML = `
  <svg xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.2" baseProfile="tiny" x="0px" y="0px" viewBox="0 0 1000 600" xml:space="preserve" xmlns:xml="http://www.w3.org/XML/1998/namespace"> 
         <path d="m 130.24729,259.26463 -0.71301,-1.3323 -0.83965,1.13893 -1.20312,0.61639 -0.3652,1.98343 -2.7566,-1.20341 -1.29507,1.2557 -1.79887,-1.96928 -0.51738,2.08913 -1.70104,0.51357 0.48353,2.36036 1.41813,-1.06374 1.07846,1.34199 2.31013,-0.11587 0.63117,-1.4221 0.77636,1.28888 1.63087,-0.86752 1.60105,1.08107 2.52028,-0.21377 0.38854,-1.63667 -0.76508,-2.45949 0.30997,-0.96605 c -0.75062,0.0982 -0.83803,-0.13605 -1.19347,-0.41925 z" data-title="Москва" data-code="RU-MOW"></path>
         <path d="m 136.30673,181.67516 -2.95955,-0.98651 -3.94605,0.98651 -0.98652,3.94606 0.98652,2.95954 3.94605,1.97303 2.95955,-1.97303 1.97302,-2.95954 -1.97302,-3.94606 z" data-title="Санкт-Петербург" data-code="RU-SPE"></path>
@@ -176,193 +300,6 @@ document.addEventListener('DOMContentLoaded', function() {
     </svg>
         `;
     }
-	
-    firstNameInput.addEventListener('input', updateCardName);
-    lastNameInput.addEventListener('input', updateCardName);
 
-    function updateCardName() {
-        const firstName = firstNameInput.value.trim().toUpperCase();
-        const lastName = lastNameInput.value.trim().toUpperCase();
-        
-        if (firstName || lastName) {
-            nameElement.textContent = `${firstName} ${lastName}`;
-        } else {
-            nameElement.textContent = 'ИМЯ ФАМИЛИЯ';
-        }
-    }
-
-    // Загружаем карту при старте
     loadRussiaMap();
-
-    // Функция для форматирования номера карты с пробелами
-    function formatCardNumber(value) {
-        return value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
-    }
-
-    // Функция для форматирования даты
-    function formatExpiryDate(value) {
-        value = value.replace(/\D/g, '');
-        if (value.length > 2) {
-            value = value.substring(0, 2) + '/' + value.substring(2, 4);
-        }
-        return value;
-    }
-
-function highlightRegion(regionName) {
-    // Сначала сбрасываем все подсветки
-    const allPaths = mapContainer.querySelectorAll('path');
-    allPaths.forEach(path => {
-        path.style.fill = '';
-        path.style.stroke = '';
-        path.style.strokeWidth = '';
-    });
-    console.log('All paths reset');
-
-    const regionCode = regionToPathId[regionName];
-    console.log('regionCode:', regionCode);
-    if (regionCode) {
-        const regionPath = mapContainer.querySelector(`path[data-code="${regionCode}"]`);
-        console.log('regionPath:', regionPath);
-        if (regionPath) {
-            regionPath.style.fill = '#ff0000';
-            regionPath.style.stroke = '#000';
-            regionPath.style.strokeWidth = '1px';
-        }
-    }
-}
-    // Обработчик ввода номера карты
-    cardNumberInput.addEventListener('input', function(e) {
-        // Удаляем все нецифровые символы
-        let value = this.value.replace(/\D/g, '');
-        
-        // Ограничиваем длину до 16 символов
-        if (value.length > 16) {
-            value = value.substring(0, 16);
-        }
-        
-        // Сохраняем позицию курсора
-        const cursorPosition = this.selectionStart;
-        
-        // Форматируем с пробелами каждые 4 цифры
-        this.value = formatCardNumber(value);
-        
-        // Восстанавливаем позицию курсора с учетом добавленных пробелов
-        const addedSpaces = Math.floor(cursorPosition / 4);
-        this.setSelectionRange(cursorPosition + addedSpaces, cursorPosition + addedSpaces);
-        
-        const cardNumber = value;
-
-        // Определяем банк по первым 4 цифрам
-        let bank = null;
-        const bankDigits = cardNumber.substring(0, 4);
-        for (const prefix in banks) {
-            if (bankDigits.startsWith(prefix)) {
-                bank = banks[prefix];
-                break;
-            }
-        }
-
-        // Определяем регион ТОЛЬКО по 5-6 цифрам (индексы 4 и 5)
-        let region = null;
-        if (cardNumber.length >= 6) {
-            const regionDigits = cardNumber.substring(4, 6);
-            region = regionsByDigits[regionDigits];
-        }
-
-        // Обновляем информацию о банке
-        if (bank) {
-            bankNameElement.textContent = bank.name;
-            if (bank.logo) {
-                bankLogo.src = bank.logo;
-                bankLogo.alt = bank.name;
-                bankLogo.style.display = 'block';
-            } else {
-                bankLogo.style.display = 'none';
-            }
-        } else {
-            bankNameElement.textContent = 'Неизвестный банк';
-            bankLogo.style.display = 'none';
-        }
-
-        // Обновляем информацию о регионе
-        if (region) {
-            regionElement.textContent = region;
-            highlightRegion(region);
-        } else if (cardNumber.length >= 6) {
-            regionElement.textContent = 'Регион не определен';
-            // Сбрасываем подсветку, если регион не определен
-            const allPaths = mapContainer.querySelectorAll('path');
-            allPaths.forEach(path => {
-                path.style.fill = '';
-                path.style.stroke = '';
-                path.style.strokeWidth = '';
-            });
-        } else {
-            regionElement.textContent = '';
-            // Сбрасываем подсветку, если цифр меньше 6
-            const allPaths = mapContainer.querySelectorAll('path');
-            allPaths.forEach(path => {
-                path.style.fill = '';
-                path.style.stroke = '';
-                path.style.strokeWidth = '';
-            });
-        }
-
-// Обновляем отображение номера карты
-if (cardNumber.length > 0) {
-    // Просто отображаем введенные цифры с пробелами каждые 4 символа
-    cardNumberElement.textContent = formatCardNumber(cardNumber);
-} else {
-    cardNumberElement.textContent = 'XXXX XXXX XXXX XXXX';
-}
-    });
-
-    // Обработчик для предотвращения ввода нецифровых символов в номер карты
-    cardNumberInput.addEventListener('keydown', function(e) {
-        // Разрешаем: backspace, delete, tab, escape, enter, стрелки
-        if ([46, 8, 9, 27, 13, 37, 38, 39, 40].indexOf(e.keyCode) !== -1 || 
-            // Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-            (e.keyCode === 65 && e.ctrlKey === true) || 
-            (e.keyCode === 67 && e.ctrlKey === true) ||
-            (e.keyCode === 86 && e.ctrlKey === true) ||
-            (e.keyCode === 88 && e.ctrlKey === true) ||
-            // Цифры на основной клавиатуре и numpad
-            (e.keyCode >= 48 && e.keyCode <= 57) ||
-            (e.keyCode >= 96 && e.keyCode <= 105)) {
-            return;
-        }
-        e.preventDefault();
-    });
-
-	nameInput.addEventListener('input', function() {
-    // Обновляем имя/фамилию на карте
-    const value = this.value.toUpperCase(); // Обычно на картах имя в верхнем регистре
-    nameDisplay.textContent = value || 'Имя Фамилия'; // Значение по умолчанию
 });
-
-	expiryInput.addEventListener('input', function() {
-    // Обновляем срок действия
-    const value = formatExpiryDate(this.value);
-    this.value = value; // Обновляем значение в поле ввода
-    expiryDisplay.textContent = value || 'ММ/ГГ'; // Значение по умолчанию
-});
-
-    // Обработчик для предотвращения ввода нецифровых символов в срок действия
-    cardExpiryInput.addEventListener('keydown', function(e) {
-        // Разрешаем: backspace, delete, tab, escape, enter, стрелки
-        if ([46, 8, 9, 27, 13, 37, 38, 39, 40].indexOf(e.keyCode) !== -1 || 
-            // Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-            (e.keyCode === 65 && e.ctrlKey === true) || 
-            (e.keyCode === 67 && e.ctrlKey === true) ||
-            (e.keyCode === 86 && e.ctrlKey === true) ||
-            (e.keyCode === 88 && e.ctrlKey === true) ||
-            // Цифры на основной клавиатуре и numpad
-            (e.keyCode >= 48 && e.keyCode <= 57) ||
-            (e.keyCode >= 96 && e.keyCode <= 105)) {
-            return;
-        }
-        e.preventDefault();
-    });
-	
-});
-
